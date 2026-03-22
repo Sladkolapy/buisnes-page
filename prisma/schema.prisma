@@ -4,19 +4,30 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  SOLO_MASTER
+  BUSINESS_OWNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-  role          String    @default("client")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String     @id @default(uuid())
+  email       String?    @unique
+  phone       String?    @unique
+  role        UserRole
+  status      UserStatus @default(ACTIVE)
+  blockReason String?
+  blockedBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   accounts Account[]
   sessions Session[]

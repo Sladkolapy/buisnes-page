@@ -37,8 +37,11 @@ yarn-error.log*
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
 /app/generated/prisma
+# Игнорировать package-lock.json (если не хотите коммитить)
+package-lock.json
+
+# Игнорировать временные файлы
+~$*.md
+*.log
+
