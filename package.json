@@ -1,7 +1,7 @@
 {
   "name": "beauty-platform",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
