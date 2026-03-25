@@ -68,6 +68,18 @@ export class PrismaUserRepository implements UserRepository {
     return this.toEntity(record);
   }
 
+  async findByPhone(phone: Phone): Promise<User | null> {
+    const record = await this.prisma.user.findUnique({
+      where: { phone: phone.getValue() },
+    });
+
+    if (!record) {
+      return null;
+    }
+
+    return this.toEntity(record);
+  }
+
   async findByRole(role: UserRole): Promise<User[]> {
     const records = await this.prisma.user.findMany({
       where: { role: this.toPrismaRole(role) },
@@ -77,11 +89,25 @@ export class PrismaUserRepository implements UserRepository {
     return records.map((record) => this.toEntity(record));
   }
 
+  async exists(email?: Email, phone?: Phone): Promise<boolean> {
+    const record = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          email ? { email: email.getValue() } : undefined,
+          phone ? { phone: phone.getValue() } : undefined,
+        ].filter(Boolean) as object[],
+      },
+      select: { id: true },
+    });
+
+    return record !== null;
+  }
+
   private toEntity(record: PrismaUser): User {
     try {
       const userId = new UserId(record.id);
       const email = record.email === null ? null : new Email(record.email);
-      const phone = record.phone === null ? undefined : new Phone(record.phone);
+      const phone = record.phone === null ? null : new Phone(record.phone);
 
       const user = new User(userId, email, this.toDomainRole(record.role), phone);
 

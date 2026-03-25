@@ -22,13 +22,16 @@ export class User {
   private readonly id: UserId;
   private readonly email: Email | null;
   private readonly role: UserRole;
-  private readonly phone?: Phone;
+  private readonly phone: Phone | null;
 
   private status: UserStatus = UserStatus.ACTIVE;
   private blockReason: string | null = null;
   private blockedBy: UserId | null = null;
 
-  constructor(id: UserId, email: Email | null, role: UserRole, phone?: Phone) {
+  constructor(id: UserId, email: Email | null, role: UserRole, phone: Phone | null = null) {
+    if (!email && !phone) {
+      throw new BusinessRuleException("User must have either email or phone");
+    }
     this.id = id;
     this.email = email;
     this.role = role;
@@ -111,7 +114,7 @@ export class User {
     return this.email;
   }
 
-  getPhone(): Phone | undefined {
+  getPhone(): Phone | null {
     return this.phone;
   }
 
