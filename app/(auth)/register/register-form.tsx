@@ -1,19 +1,13 @@
 "use client";
 
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const ROLES = [
-  { value: "CLIENT", label: "Клиент" },
-  { value: "SOLO_MASTER", label: "Мастер (частный)" },
-  { value: "BUSINESS_OWNER", label: "Владелец бизнеса" },
-] as const;
 
 export default function RegisterForm() {
   const router = useRouter();
   const [tab, setTab] = useState<"email" | "phone">("email");
   const [value, setValue] = useState("");
-  const [role, setRole] = useState<string>("CLIENT");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,10 +16,7 @@ export default function RegisterForm() {
     setError(null);
     setLoading(true);
 
-    const body =
-      tab === "email"
-        ? { email: value, role }
-        : { phone: value, role };
+    const body = tab === "email" ? { email: value } : { phone: value };
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -33,15 +24,26 @@ export default function RegisterForm() {
       body: JSON.stringify(body),
     });
 
-    setLoading(false);
-
     if (!res.ok) {
+      setLoading(false);
       const data = await res.json().catch(() => ({}));
       setError((data as { error?: string }).error ?? "Что-то пошло не так");
       return;
     }
 
-    router.push("/sign-in");
+    const result = await signIn("credentials", {
+      ...body,
+      redirect: false,
+    });
+
+    setLoading(false);
+
+    if (result?.error) {
+      router.push("/sign-in");
+      return;
+    }
+
+    router.push("/welcome");
   }
 
   return (
@@ -64,34 +66,6 @@ export default function RegisterForm() {
         className="w-full rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none ring-violet-500 transition focus:ring-2 dark:border-zinc-700"
       />
 
-      <div>
-        <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-          Кто вы?
-        </label>
-        <div className="space-y-2">
-          {ROLES.map((r) => (
-            <label
-              key={r.value}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition ${
-                role === r.value
-                  ? "border-violet-500 bg-violet-50 dark:bg-violet-950/30"
-                  : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700"
-              }`}
-            >
-              <input
-                type="radio"
-                name="role"
-                value={r.value}
-                checked={role === r.value}
-                onChange={() => setRole(r.value)}
-                className="accent-violet-600"
-              />
-              <span className="text-sm">{r.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
       {error && <p className="text-xs text-red-500">{error}</p>}
 
       <button
@@ -99,7 +73,7 @@ export default function RegisterForm() {
         disabled={loading}
         className="w-full rounded-lg bg-violet-600 py-2 text-sm font-medium text-white transition hover:bg-violet-700 disabled:opacity-50"
       >
-        {loading ? "Регистрируем…" : "Зарегистрироваться"}
+        {loading ? "Создаём аккаунт…" : "Зарегистрироваться"}
       </button>
     </form>
   );
