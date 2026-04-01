@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import SignInForm from "./sign-in-form";
 
 export default function SignInPage() {
@@ -8,7 +9,9 @@ export default function SignInPage() {
           <h1 className="text-2xl font-bold tracking-tight">Beauty Platform</h1>
           <p className="mt-1 text-sm text-zinc-500">Войдите в аккаунт</p>
         </div>
-        <SignInForm />
+        <Suspense fallback={<div className="h-40" />}>
+          <SignInForm />
+        </Suspense>
         <p className="mt-6 text-center text-sm text-zinc-500">
           Нет аккаунта?{" "}
           <a href="/register" className="font-medium text-violet-600 hover:underline">
