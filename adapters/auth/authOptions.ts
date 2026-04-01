@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { container } from "@/config/containers";
+import { container, getPrisma } from "@/config/containers";
 import { Email, Phone } from "@/core/shared/value-objects";
 import { BusinessRuleException } from "@/core/shared/errors";
 
@@ -65,10 +65,18 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "";
+      } else if (token.id) {
+        try {
+          const row = await getPrisma().user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true },
+          });
+          if (row) token.role = row.role;
+        } catch { /* ignore DB errors */ }
       }
       return token;
     },

@@ -1,0 +1,17 @@
+{
+  "name": "Beauty Platform",
+  "short_name": "Beauty",
+  "description": "Социальная сеть для бьюти-мастеров и их клиентов",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/globe.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

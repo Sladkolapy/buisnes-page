@@ -1,11 +1,9 @@
 "use client";
 
-import { Home, MessageCircle, User, LayoutGrid } from "lucide-react";
+import { Home, MessageCircle, User, LayoutGrid, Shield } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const MASTER_ROLES = ["SOLO_MASTER", "BUSINESS_OWNER"];
 
 interface NavItem {
   href: string;
@@ -15,17 +13,20 @@ interface NavItem {
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const role = (session?.user as { role?: string })?.role ?? "";
-  const isMaster = MASTER_ROLES.includes(role);
+  const { data: session, status } = useSession();
+  const isAuth = status === "authenticated";
+  const role = (session?.user as { role?: string })?.role;
 
   const items: NavItem[] = [
     { href: "/", label: "Главная", icon: Home },
     { href: "/chats", label: "Чаты", icon: MessageCircle },
-    ...(isMaster
+    ...(isAuth
       ? [{ href: "/my-page", label: "Моя страница", icon: LayoutGrid }]
       : []),
     { href: "/profile", label: "Профиль", icon: User },
+    ...(role === "ADMIN"
+      ? [{ href: "/admin", label: "Админ", icon: Shield }]
+      : []),
   ];
 
   return (

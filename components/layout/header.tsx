@@ -1,12 +1,13 @@
 "use client";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { LogOut, User, Plus } from "lucide-react";
+import { LogOut, User, Plus, Search, Shield } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-
-const MASTER_ROLES = ["SOLO_MASTER", "BUSINESS_OWNER"];
+import { CreateProfileModal } from "@/components/business-profile/create-profile-modal";
+import { useBusinessProfileStore } from "@/stores/business-profile-store";
 
 function Avatar({ email }: { email?: string | null }) {
   const initials = email ? email[0].toUpperCase() : "?";
@@ -19,8 +20,14 @@ function Avatar({ email }: { email?: string | null }) {
 
 export function Header() {
   const { data: session, status } = useSession();
+  const { profile, fetchProfile } = useBusinessProfileStore();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const role = (session?.user as { role?: string })?.role;
-  const isMaster = role && MASTER_ROLES.includes(role);
+  const isAuth = status === "authenticated";
+
+  useEffect(() => {
+    if (isAuth) fetchProfile();
+  }, [isAuth, fetchProfile]);
 
   return (
     <header className="sticky top-0 z-40 flex h-14 w-full items-center border-b border-zinc-200 bg-white/80 px-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
@@ -35,24 +42,52 @@ export function Header() {
         <div className="flex-1" />
 
         <nav className="hidden items-center gap-2 sm:flex">
-          {isMaster && (
+          {role === "ADMIN" && (
             <Link
-              href="/my-page"
-              className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-violet-700"
+              href="/admin"
+              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
-              <Plus className="h-4 w-4" />
-              Создать страницу
+              <Shield className="h-4 w-4" />
+              Админ
             </Link>
+          )}
+          {isAuth && !profile && (
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              <Search className="h-4 w-4" />
+              Посмотреть услуги
+            </Link>
+          )}
+          {isAuth && (
+            profile ? (
+              <Link
+                href="/my-page"
+                className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-violet-700"
+              >
+                <Plus className="h-4 w-4" />
+                Моя страница
+              </Link>
+            ) : (
+              <button
+                onClick={() => setCreateModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-violet-700"
+              >
+                <Plus className="h-4 w-4" />
+                Создать страницу
+              </button>
+            )
           )}
         </nav>
 
         <ThemeToggle />
 
-        {status === "authenticated" ? (
+        {isAuth ? (
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button className="cursor-pointer outline-none">
-                <Avatar email={session.user?.email} />
+                <Avatar email={session!.user?.email} />
               </button>
             </DropdownMenu.Trigger>
 
@@ -64,7 +99,7 @@ export function Header() {
               >
                 <div className="px-3 py-2">
                   <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                    {session.user?.email}
+                    {session!.user?.email}
                   </p>
                   <p className="text-xs text-zinc-500">{role}</p>
                 </div>
@@ -97,6 +132,8 @@ export function Header() {
           </Link>
         )}
       </div>
+
+      <CreateProfileModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
     </header>
   );
 }

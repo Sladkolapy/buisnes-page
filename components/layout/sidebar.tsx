@@ -2,27 +2,29 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Switch from "@radix-ui/react-switch";
-import { Settings, X, Mail, LayoutGrid } from "lucide-react";
+import { Settings, X, Mail, LayoutGrid, Plus, Shield } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-const MASTER_ROLES = ["SOLO_MASTER", "BUSINESS_OWNER"];
+import { useBusinessProfileStore } from "@/stores/business-profile-store";
+import { CreateProfileModal } from "@/components/business-profile/create-profile-modal";
 
 export function Sidebar() {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
+  const { profile } = useBusinessProfileStore();
   const [mounted, setMounted] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   const role = (session?.user as { role?: string })?.role ?? "";
   const email = session?.user?.email ?? "";
   const initials = email ? email[0].toUpperCase() : "?";
-  const isMaster = MASTER_ROLES.includes(role);
 
   return (
+    <>
     <Dialog.Root>
       <Dialog.Trigger asChild>
         <button
@@ -95,21 +97,46 @@ export function Sidebar() {
                 {email ? "Изменить почту" : "Привязать почту"}
               </button>
 
-              {isMaster && (
+              {role === "ADMIN" && (
                 <Dialog.Close asChild>
                   <Link
-                    href="/my-page"
-                    className="flex items-center gap-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-medium text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/30 dark:text-violet-400 dark:hover:bg-violet-950/50"
+                    href="/admin"
+                    className="flex items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   >
-                    <LayoutGrid className="h-4 w-4" />
-                    Моя страница
+                    <Shield className="h-4 w-4 text-zinc-400" />
+                    Панель админа
                   </Link>
                 </Dialog.Close>
+              )}
+
+              {session?.user && (
+                profile ? (
+                  <Dialog.Close asChild>
+                    <Link
+                      href="/my-page"
+                      className="flex items-center gap-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-medium text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/30 dark:text-violet-400 dark:hover:bg-violet-950/50"
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                      Моя страница
+                    </Link>
+                  </Dialog.Close>
+                ) : (
+                  <button
+                    onClick={() => setCreateModalOpen(true)}
+                    className="flex w-full items-center gap-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-left text-sm font-medium text-violet-700 transition hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950/30 dark:text-violet-400 dark:hover:bg-violet-950/50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Создать страницу
+                  </button>
+                )
               )}
             </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+
+    <CreateProfileModal open={createModalOpen} onClose={() => setCreateModalOpen(false)} />
+    </>
   );
 }

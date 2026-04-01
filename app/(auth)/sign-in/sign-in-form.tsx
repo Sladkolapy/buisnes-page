@@ -2,10 +2,12 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
   const [tab, setTab] = useState<"email" | "phone">("email");
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,8 +20,8 @@ export default function SignInForm() {
 
     const payload =
       tab === "email"
-        ? { email: value, callbackUrl: "/" }
-        : { phone: value, callbackUrl: "/" };
+        ? { email: value }
+        : { phone: value };
 
     const result = await signIn("credentials", { ...payload, redirect: false });
 
@@ -30,7 +32,7 @@ export default function SignInForm() {
       return;
     }
 
-    router.push("/");
+    router.push(callbackUrl);
   }
 
   return (
