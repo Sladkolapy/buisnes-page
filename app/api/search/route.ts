@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getMockProfiles } from "@/lib/mock/profiles";
+import { getPrisma } from "@/config/containers";
+
+const prisma = getPrisma();
 
 const schema = z.object({
   q: z.string().default(""),
@@ -29,9 +31,56 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
   }
 
-  const { q, categoryId, sortBy, sortOrder, page, limit } = parsed.data;
+  const { q, sortBy, sortOrder, page, limit } = parsed.data;
+  const skip = (page - 1) * limit;
 
-  const { data, total } = getMockProfiles(page, limit, { query: q, categoryId, sortBy, sortOrder });
+  const where = {
+    isPublished: true,
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { description: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+
+  const orderBy =
+    sortBy === "name"
+      ? { name: sortOrder as "asc" | "desc" }
+      : { createdAt: sortOrder as "asc" | "desc" };
+
+  const [records, total] = await Promise.all([
+    prisma.businessProfile.findMany({
+      where,
+      orderBy,
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        subdomain: true,
+        avatarUrl: true,
+        isPublished: true,
+      },
+    }),
+    prisma.businessProfile.count({ where }),
+  ]);
+
+  const data = records
+    .filter((r) => r.subdomain !== null)
+    .map((r) => ({
+      id: r.id,
+      businessName: r.name,
+      avatar: r.avatarUrl,
+      description: r.description,
+      rating: 0,
+      subdomain: r.subdomain!,
+      categoryIds: [] as string[],
+      isPublished: r.isPublished,
+    }));
 
   return NextResponse.json({
     data,
