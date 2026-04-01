@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getPrisma } from "@/config/containers";
 import { WidgetType, type WidgetData } from "@/core/shared/widget-types";
@@ -54,34 +56,52 @@ export default async function PublicProfilePage({
     .sort((a, b) => a.position - b.position);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
-      <div className="flex items-center gap-4 pb-2">
-        {profile.avatarUrl ? (
-          <img
-            src={profile.avatarUrl}
-            alt={profile.name}
-            className="h-20 w-20 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-600 text-3xl font-bold text-white">
-            {profile.name[0]?.toUpperCase()}
-          </div>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{profile.name}</h1>
-          {profile.description && (
-            <p className="mt-1 text-sm text-zinc-500">{profile.description}</p>
-          )}
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {/* Top bar */}
+      <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90">
+        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            К поиску
+          </Link>
+          <Link href="/" className="text-sm font-bold text-violet-600">
+            Beauty Platform
+          </Link>
         </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
+        <div className="flex items-center gap-4 pb-2">
+          {profile.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt={profile.name}
+              className="h-20 w-20 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-600 text-3xl font-bold text-white">
+              {profile.name[0]?.toUpperCase()}
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{profile.name}</h1>
+            {profile.description && (
+              <p className="mt-1 text-sm text-zinc-500">{profile.description}</p>
+            )}
+          </div>
+        </div>
+
+        {widgets.map((widget) => (
+          <WidgetRenderer key={widget.id} widget={widget} />
+        ))}
+
+        {widgets.length === 0 && (
+          <p className="text-center text-sm text-zinc-400">Страница пока пустая</p>
+        )}
       </div>
-
-      {widgets.map((widget) => (
-        <WidgetRenderer key={widget.id} widget={widget} />
-      ))}
-
-      {widgets.length === 0 && (
-        <p className="text-center text-sm text-zinc-400">Страница пока пустая</p>
-      )}
     </div>
   );
 }
