@@ -25,6 +25,7 @@ function buildUrl(filters: SearchFilters, page: number) {
   const params = new URLSearchParams();
   if (filters.query) params.set("q", filters.query);
   if (filters.categoryId) params.set("categoryId", filters.categoryId);
+  if (filters.subcategoryId) params.set("subcategoryId", filters.subcategoryId);
   if (filters.city) params.set("city", filters.city);
   params.set("sortBy", filters.sortBy);
   params.set("sortOrder", filters.sortOrder);

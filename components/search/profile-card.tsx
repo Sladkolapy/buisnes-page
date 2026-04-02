@@ -3,7 +3,8 @@
 import { Star } from "lucide-react";
 import Link from "next/link";
 import type { ProfileCardData } from "@/core/shared/search-types";
-import { useCategoryStore } from "@/stores/category-store";
+import { useProfileCategories } from "@/hooks/use-profile-categories";
+import { useCategoryNavigation } from "@/hooks/use-category-navigation";
 
 interface ProfileCardProps {
   profile: ProfileCardData;
@@ -19,11 +20,8 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export function ProfileCard({ profile }: ProfileCardProps) {
-  const categories = useCategoryStore((s) => s.categories);
-
-  const categoryLabels = profile.categoryIds
-    .map((id) => categories.find((c) => c.id === id))
-    .filter(Boolean);
+  const subcats = useProfileCategories(profile.subcategoryIds);
+  const { setSubcategory } = useCategoryNavigation();
 
   return (
     <Link
@@ -42,16 +40,21 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         </div>
       </div>
 
-      {categoryLabels.length > 0 && (
+      {subcats.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {categoryLabels.map((cat) => (
-            <span
-              key={cat!.id}
-              className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-950/30 dark:text-violet-400"
+          {subcats.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                if (cat.parentId) setSubcategory(cat.parentId, cat.id);
+              }}
+              className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 transition hover:bg-violet-100 dark:bg-violet-950/30 dark:text-violet-400 dark:hover:bg-violet-950/50"
             >
-              {cat!.icon && <span>{cat!.icon}</span>}
-              {cat!.name}
-            </span>
+              {cat.icon && <span>{cat.icon}</span>}
+              {cat.name}
+            </button>
           ))}
         </div>
       )}

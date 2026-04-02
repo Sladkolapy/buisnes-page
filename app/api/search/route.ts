@@ -7,6 +7,7 @@ const prisma = getPrisma();
 const schema = z.object({
   q: z.string().default(""),
   categoryId: z.string().nullable().default(null),
+  subcategoryId: z.string().nullable().default(null),
   city: z.string().nullable().default(null),
   sortBy: z.enum(["date", "rating", "name"]).default("date"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
   const parsed = schema.safeParse({
     q: searchParams.get("q") ?? "",
     categoryId: searchParams.get("categoryId") || null,
+    subcategoryId: searchParams.get("subcategoryId") || null,
     city: searchParams.get("city") || null,
     sortBy: searchParams.get("sortBy") ?? "date",
     sortOrder: searchParams.get("sortOrder") ?? "desc",
@@ -79,16 +81,12 @@ export async function GET(req: NextRequest) {
       rating: 0,
       subdomain: r.subdomain!,
       categoryIds: [] as string[],
+      subcategoryIds: [] as string[],
       isPublished: r.isPublished,
     }));
 
   return NextResponse.json({
     data,
-    pagination: {
-      page,
-      limit,
-      total,
-      hasMore: page * limit < total,
-    },
+    pagination: { page, limit, total, hasMore: page * limit < total },
   });
 }
