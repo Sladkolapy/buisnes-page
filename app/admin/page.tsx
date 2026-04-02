@@ -1,8 +1,9 @@
 "use client";
 
-import { Shield, Ban, CheckCircle, ExternalLink } from "lucide-react";
+import { Shield, Ban, CheckCircle, ExternalLink, Tags } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface UserRow {
@@ -90,9 +91,18 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Shield className="h-6 w-6 text-violet-600" />
-        <h1 className="text-2xl font-bold tracking-tight">Панель администратора</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Shield className="h-6 w-6 text-violet-600" />
+          <h1 className="text-2xl font-bold tracking-tight">Панель администратора</h1>
+        </div>
+        <Link
+          href="/admin/categories"
+          className="flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-medium text-violet-700 transition hover:bg-violet-100 dark:border-violet-800/40 dark:bg-violet-950/20 dark:text-violet-400 dark:hover:bg-violet-950/30"
+        >
+          <Tags className="h-4 w-4" />
+          Управление категориями
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
