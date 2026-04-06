@@ -34,7 +34,7 @@ export default function ProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const user = session?.user as {
-    id?: string; email?: string | null; role?: string;
+    id?: string; email?: string | null; phone?: string | null; role?: string;
     name?: string | null; avatarUrl?: string | null;
   } | undefined;
 
