@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { StartChatButton } from "@/components/chat/start-chat-button";
 import { notFound } from "next/navigation";
 import { getPrisma } from "@/config/containers";
 import { WidgetType, type WidgetData } from "@/core/shared/widget-types";
@@ -47,6 +48,7 @@ export default async function PublicProfilePage({
 
   const profile = await prisma.businessProfile.findUnique({
     where: { subdomain },
+    include: { user: { select: { id: true } } },
   });
 
   if (!profile || !profile.isPublished) notFound();
@@ -86,11 +88,14 @@ export default async function PublicProfilePage({
               {profile.name[0]?.toUpperCase()}
             </div>
           )}
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{profile.name}</h1>
             {profile.description && (
               <p className="mt-1 text-sm text-zinc-500">{profile.description}</p>
             )}
+            <div className="mt-3">
+              <StartChatButton recipientId={profile.user.id} />
+            </div>
           </div>
         </div>
 
