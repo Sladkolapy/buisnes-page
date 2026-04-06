@@ -21,12 +21,21 @@ export async function GET(
   });
   if (!member) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const messages = await prisma.message.findMany({
+  const raw = await prisma.message.findMany({
     where: { conversationId },
     orderBy: { createdAt: "asc" },
-    include: { sender: { select: { id: true, email: true, businessProfile: { select: { name: true, avatarUrl: true } } } } },
+    include: { sender: { select: { id: true, email: true, name: true, businessProfile: { select: { name: true, avatarUrl: true } } } } },
     take: 100,
   });
+
+  const messages = raw.map((m) => ({
+    id: m.id,
+    text: m.text,
+    senderId: m.senderId,
+    senderName: m.sender.businessProfile?.name ?? m.sender.name ?? m.sender.email ?? "Пользователь",
+    senderAvatar: m.sender.businessProfile?.avatarUrl ?? null,
+    createdAt: m.createdAt,
+  }));
 
   return NextResponse.json({ data: messages });
 }

@@ -77,12 +77,35 @@ export default function ChatRoomPage() {
     }
     setCardWarning(false);
     setSending(true);
+    const trimmed = text.trim();
+    setText("");
+
+    const optimisticId = `optimistic-${Date.now()}`;
+    const optimistic: Msg = {
+      id: optimisticId,
+      text: trimmed,
+      senderId: myId ?? "",
+      senderName: (session?.user as { name?: string | null })?.name ?? (session?.user as { email?: string | null })?.email ?? "Вы",
+      senderAvatar: null,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
     const res = await fetch(`/api/chats/${convoId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: text.trim() }),
+      body: JSON.stringify({ text: trimmed }),
     });
-    if (res.ok) setText("");
+
+    if (res.ok) {
+      const data = (await res.json()) as { data: { id: string } };
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimisticId ? { ...m, id: data.data.id } : m)),
+      );
+    } else {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+      setText(trimmed);
+    }
     setSending(false);
   }
 
