@@ -8,6 +8,7 @@ export default function RegisterForm() {
   const router = useRouter();
   const [tab, setTab] = useState<"email" | "phone">("email");
   const [value, setValue] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +17,7 @@ export default function RegisterForm() {
     setError(null);
     setLoading(true);
 
-    const body = tab === "email" ? { email: value } : { phone: value };
+    const body = tab === "email" ? { email: value, name } : { phone: value, name };
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -56,6 +57,14 @@ export default function RegisterForm() {
           Телефон
         </TabButton>
       </div>
+
+      <input
+        placeholder="Ваше имя"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+        className="w-full rounded-lg border border-zinc-200 bg-transparent px-3 py-2 text-sm outline-none ring-violet-500 transition focus:ring-2 dark:border-zinc-700"
+      />
 
       <input
         type={tab === "email" ? "email" : "tel"}

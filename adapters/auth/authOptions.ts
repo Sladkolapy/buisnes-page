@@ -69,13 +69,18 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "";
-      } else if (token.id) {
+      }
+      if (token.id) {
         try {
           const row = await getPrisma().user.findUnique({
             where: { id: token.id as string },
-            select: { role: true },
+            select: { role: true, name: true, avatarUrl: true },
           });
-          if (row) token.role = row.role;
+          if (row) {
+            token.role = row.role;
+            token.name = row.name ?? token.name ?? null;
+            token.avatarUrl = row.avatarUrl ?? null;
+          }
         } catch { /* ignore DB errors */ }
       }
       return token;
@@ -84,6 +89,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as { id?: string }).id = token.id as string;
         (session.user as { role?: string }).role = token.role as string;
+        (session.user as { name?: string | null }).name = (token.name as string | null) ?? null;
+        (session.user as { avatarUrl?: string | null }).avatarUrl = (token.avatarUrl as string | null) ?? null;
       }
       return session;
     },
