@@ -66,24 +66,40 @@ export async function GET(req: NextRequest) {
         subdomain: true,
         avatarUrl: true,
         isPublished: true,
+        widgetsJson: true,
       },
     }),
     prisma.businessProfile.count({ where }),
   ]);
 
+  type WidgetRow = { type: string; isVisible: boolean; position: number; content?: { items?: { name: string; price: string; unit?: string }[] } };
+
   const data = records
     .filter((r) => r.subdomain !== null)
-    .map((r) => ({
-      id: r.id,
-      businessName: r.name,
-      avatar: r.avatarUrl,
-      description: r.description,
-      rating: 0,
-      subdomain: r.subdomain!,
-      categoryIds: [] as string[],
-      subcategoryIds: [] as string[],
-      isPublished: r.isPublished,
-    }));
+    .map((r) => {
+      const widgets = (r.widgetsJson as unknown as WidgetRow[]) ?? [];
+      const priceWidget = widgets
+        .filter((w) => w.type === "PRICE_LIST" && w.isVisible)
+        .sort((a, b) => a.position - b.position)[0];
+      const pricePreview = priceWidget?.content?.items?.slice(0, 3).map((i) => ({
+        name: i.name,
+        price: i.price,
+        unit: i.unit,
+      })) ?? null;
+
+      return {
+        id: r.id,
+        businessName: r.name,
+        avatar: r.avatarUrl,
+        description: r.description,
+        rating: 0,
+        subdomain: r.subdomain!,
+        categoryIds: [] as string[],
+        subcategoryIds: [] as string[],
+        isPublished: r.isPublished,
+        pricePreview,
+      };
+    });
 
   return NextResponse.json({
     data,

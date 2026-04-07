@@ -121,6 +121,7 @@ export function WidgetList() {
       [WidgetType.SOCIAL]: {},
       [WidgetType.NEWS]: { title: "", text: "" },
       [WidgetType.REVIEWS]: {},
+      [WidgetType.PRICE_LIST]: { items: [] },
     };
 
     const widget: WidgetData = {

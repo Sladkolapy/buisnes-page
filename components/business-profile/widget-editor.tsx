@@ -12,8 +12,10 @@ import {
   type MapContent,
   type NewsContent,
   type SocialContent,
+  type PriceListContent,
 } from "@/core/shared/widget-types";
 import { GalleryWidget } from "@/components/widgets/gallery-widget";
+import { PriceListWidget } from "@/components/widgets/price-list-widget";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
 
 interface Props {
@@ -267,6 +269,18 @@ function WidgetContentForm({
         content={c}
         editable
         onUpdate={(images) => onChange({ ...c, images })}
+      />
+    );
+  }
+
+  if (type === WidgetType.PRICE_LIST) {
+    const c = content as PriceListContent;
+    return (
+      <PriceListWidget
+        title=""
+        content={c}
+        editable
+        onUpdate={(updated) => onChange(updated)}
       />
     );
   }

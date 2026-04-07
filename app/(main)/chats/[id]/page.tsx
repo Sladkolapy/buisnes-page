@@ -28,6 +28,7 @@ const CARD_RE = /\d[\d\s\-]{14,}\d/;
 
 export default function ChatRoomPage() {
   const { data: session, status } = useSession();
+  const myId = (session?.user as { id?: string })?.id;
   const router = useRouter();
   const params = useParams();
   const convoId = params.id as string;
@@ -37,6 +38,7 @@ export default function ChatRoomPage() {
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
   const [cardWarning, setCardWarning] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -65,17 +67,19 @@ export default function ChatRoomPage() {
     const data = msg.data as Msg;
     setMessages((prev) => {
       if (prev.some((m) => m.id === data.id)) return prev;
+      if (data.senderId === myId) return prev;
       return [...prev, data];
     });
   });
 
   async function handleSend() {
-    if (!text.trim() || sending) return;
+    if (!text.trim() || sendingRef.current) return;
     if (CARD_RE.test(text)) {
       setCardWarning(true);
       return;
     }
     setCardWarning(false);
+    sendingRef.current = true;
     setSending(true);
     const trimmed = text.trim();
     setText("");
@@ -106,6 +110,7 @@ export default function ChatRoomPage() {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       setText(trimmed);
     }
+    sendingRef.current = false;
     setSending(false);
   }
 
@@ -115,8 +120,6 @@ export default function ChatRoomPage() {
       void handleSend();
     }
   }
-
-  const myId = (session?.user as { id?: string })?.id;
 
   if (status === "loading" || loading) {
     return (

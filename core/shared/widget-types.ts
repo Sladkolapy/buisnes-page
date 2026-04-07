@@ -6,6 +6,7 @@ export enum WidgetType {
   SOCIAL = "SOCIAL",
   NEWS = "NEWS",
   REVIEWS = "REVIEWS",
+  PRICE_LIST = "PRICE_LIST",
 }
 
 export const WIDGET_LABELS: Record<WidgetType, string> = {
@@ -16,6 +17,7 @@ export const WIDGET_LABELS: Record<WidgetType, string> = {
   [WidgetType.SOCIAL]: "Соцсети",
   [WidgetType.NEWS]: "Новости",
   [WidgetType.REVIEWS]: "Отзывы",
+  [WidgetType.PRICE_LIST]: "Прайс-лист",
 };
 
 export type AboutContent = { text: string };
@@ -31,6 +33,15 @@ export type SocialContent = {
 export type NewsContent = { title: string; text: string };
 export type ReviewsContent = Record<string, never>;
 
+export type PriceListItem = {
+  id: string;
+  name: string;
+  price: string;
+  unit?: string;
+  description?: string;
+};
+export type PriceListContent = { items: PriceListItem[] };
+
 export type WidgetContent =
   | AboutContent
   | GalleryContent
@@ -38,7 +49,8 @@ export type WidgetContent =
   | MapContent
   | SocialContent
   | NewsContent
-  | ReviewsContent;
+  | ReviewsContent
+  | PriceListContent;
 
 export interface WidgetData {
   id: string;

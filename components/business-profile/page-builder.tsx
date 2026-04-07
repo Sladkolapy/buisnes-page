@@ -2,9 +2,9 @@
 
 import { useRef, useState, useCallback } from "react";
 import {
-  Image, User, Palette, LayoutGrid, Globe, ChevronDown, ChevronRight,
+  ImageIcon, User, Palette, LayoutGrid, Globe, ChevronDown, ChevronRight,
   Eye, EyeOff, GripVertical, Pencil, Trash2, Plus, Save, Check,
-  ExternalLink, Loader2, Columns2, Square, ImagePlus,
+  ExternalLink, Loader2, Columns2, Square, ImagePlus, AlertCircle, Monitor,
 } from "lucide-react";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
 import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
@@ -14,23 +14,50 @@ import { WidgetType, WIDGET_LABELS, type WidgetData } from "@/core/shared/widget
 const BG_PRESETS = [
   { label: "Белый", value: "#ffffff" },
   { label: "Светло-серый", value: "#f4f4f5" },
+  { label: "Серый", value: "#e4e4e7" },
   { label: "Кремовый", value: "#fdf8f0" },
+  { label: "Бежевый", value: "#faf5eb" },
   { label: "Светло-розовый", value: "#fff0f3" },
+  { label: "Персиковый", value: "#fff4ed" },
+  { label: "Абрикосовый", value: "#fff7ed" },
+  { label: "Лимонный", value: "#fefce8" },
   { label: "Мятный", value: "#f0fdf4" },
+  { label: "Лазурный", value: "#f0f9ff" },
+  { label: "Голубой", value: "#eff6ff" },
   { label: "Лавандовый", value: "#f5f3ff" },
+  { label: "Сиреневый", value: "#fdf4ff" },
   { label: "Тёмный", value: "#18181b" },
   { label: "Тёмно-серый", value: "#27272a" },
 ];
 const ACCENT_PRESETS = [
   { label: "Фиолетовый", value: "#7c3aed" },
-  { label: "Розовый", value: "#db2777" },
-  { label: "Красный", value: "#dc2626" },
-  { label: "Оранжевый", value: "#ea580c" },
-  { label: "Жёлтый", value: "#ca8a04" },
-  { label: "Зелёный", value: "#16a34a" },
-  { label: "Синий", value: "#2563eb" },
   { label: "Индиго", value: "#4338ca" },
+  { label: "Синий", value: "#2563eb" },
+  { label: "Голубой", value: "#0284c7" },
+  { label: "Бирюзовый", value: "#0891b2" },
+  { label: "Зелёный", value: "#16a34a" },
+  { label: "Изумрудный", value: "#059669" },
+  { label: "Мятный", value: "#0d9488" },
+  { label: "Жёлтый", value: "#ca8a04" },
+  { label: "Оранжевый", value: "#ea580c" },
+  { label: "Красный", value: "#dc2626" },
+  { label: "Розовый", value: "#db2777" },
+  { label: "Фуксия", value: "#c026d3" },
+  { label: "Сирень", value: "#9333ea" },
+  { label: "Тёмный", value: "#18181b" },
+  { label: "Серый", value: "#52525b" },
 ];
+
+const WIDGET_DESCRIPTIONS: Record<string, string> = {
+  ABOUT: "Текст о вас, вашем опыте и услугах",
+  GALLERY: "Фотографии ваших работ с просмотром в лайтбоксе",
+  CHECKLIST: "Список услуг, преимуществ или правил визита",
+  MAP: "Ваш адрес с картой — клиент сразу знает, как добраться",
+  SOCIAL: "Ссылки на Instagram, Telegram, ВКонтакте, WhatsApp",
+  NEWS: "Акции, спецпредложения и важные объявления",
+  REVIEWS: "Отзывы клиентов — вскоре будет доступно",
+  PRICE_LIST: "Цены на услуги — первые 3 строки видны в ленте поиска",
+};
 
 function Section({
   icon, title, badge, defaultOpen = false,
@@ -63,20 +90,55 @@ function Section({
 }
 
 function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolean; saved: boolean }) {
+  const { profile, setProfile, saveProfile, isLoading } = useBusinessProfileStore();
+
+  async function togglePublish() {
+    if (!profile) return;
+    setProfile({ ...profile, isPublished: !profile.isPublished });
+    await saveProfile();
+  }
+
   return (
     <div className="sticky top-0 z-20 -mx-4 flex items-center justify-between border-b border-zinc-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/90">
       <div>
         <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Конструктор страницы</p>
         <p className="text-xs text-zinc-400">Изменения сохраняются вручную</p>
       </div>
-      <button
-        onClick={onSave}
-        disabled={saving}
-        className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-700 disabled:opacity-60"
-      >
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-        {saved ? "Сохранено!" : saving ? "Сохраняем…" : "Сохранить"}
-      </button>
+      {profile?.subdomain && (
+        <a
+          href={`/my-page/preview`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden items-center gap-1.5 rounded-xl border border-zinc-200 px-3 py-2 text-sm text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 sm:flex"
+        >
+          <Monitor className="h-4 w-4" />
+          Превью
+        </a>
+      )}
+      <div className="flex items-center gap-2">
+        {profile && (
+          <button
+            onClick={() => void togglePublish()}
+            disabled={isLoading}
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition disabled:opacity-50 ${
+              profile.isPublished
+                ? "border border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
+                : "border border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-950/30"
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${profile.isPublished ? "bg-green-500" : "bg-zinc-300"}`} />
+            {profile.isPublished ? "Онлайн" : "Опубликовать"}
+          </button>
+        )}
+        <button
+          onClick={onSave}
+          disabled={saving}
+          className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-700 disabled:opacity-60"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+          {saved ? "Сохранено!" : saving ? "Сохраняем…" : "Сохранить"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -85,7 +147,7 @@ function HeroSection() {
   const { profile, setProfile } = useBusinessProfileStore();
   const [offsetY, setOffsetY] = useState(50);
   const fileRef = useRef<HTMLInputElement>(null);
-  const { upload, uploading } = useCloudinaryUpload("backgrounds");
+  const { upload, uploading, error: uploadError } = useCloudinaryUpload("backgrounds");
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -155,6 +217,14 @@ function HeroSection() {
         </div>
       )}
 
+      {uploadError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>Ошибка загрузки: {uploadError}</span>
+        </div>
+      )}
+      <p className="text-xs text-zinc-400">Поддерживаются JPG, PNG, WebP. Оптимально — 1920×600 px.</p>
+
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => void handleFile(e)} />
     </div>
   );
@@ -162,7 +232,7 @@ function HeroSection() {
 
 function ProfileSection() {
   const { profile, setProfile } = useBusinessProfileStore();
-  const { upload: uploadAvatar, uploading } = useCloudinaryUpload("avatars");
+  const { upload: uploadAvatar, uploading, error: uploadError } = useCloudinaryUpload("avatars");
   const [editingName, setEditingName] = useState(false);
   const [nameVal, setNameVal] = useState(profile?.name ?? "");
   const [descVal, setDescVal] = useState(profile?.description ?? "");
@@ -227,6 +297,13 @@ function ProfileSection() {
         </div>
       </div>
 
+      {uploadError && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>Ошибка загрузки аватара: {uploadError}</span>
+        </div>
+      )}
+
       <div>
         <label className="mb-1.5 block text-xs font-medium text-zinc-500">Описание / О себе</label>
         <textarea
@@ -250,9 +327,10 @@ function StyleSection() {
 
   return (
     <div className="space-y-5">
+      <p className="-mt-1 mb-4 text-xs text-zinc-400">Цвет фона страницы и акцентный цвет кнопок — выберите из пресетов или задайте свой hex-код.</p>
       <div>
         <p className="mb-2 text-xs font-medium text-zinc-500">Фон страницы</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-8 gap-1.5">
           {BG_PRESETS.map((c) => (
             <button
               key={c.value}
@@ -276,7 +354,7 @@ function StyleSection() {
 
       <div>
         <p className="mb-2 text-xs font-medium text-zinc-500">Акцентный цвет (кнопки, ссылки)</p>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-8 gap-1.5">
           {ACCENT_PRESETS.map((c) => (
             <button
               key={c.value}
@@ -341,6 +419,7 @@ function WidgetsSection() {
       [WidgetType.SOCIAL]: {},
       [WidgetType.NEWS]: { title: "", text: "" },
       [WidgetType.REVIEWS]: {},
+      [WidgetType.PRICE_LIST]: { items: [] },
     };
     const w: WidgetData = {
       id: crypto.randomUUID(),
@@ -377,13 +456,19 @@ function WidgetsSection() {
 
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">{widget.title}</p>
-            <p className="text-xs text-zinc-400">{WIDGET_LABELS[widget.type]}</p>
+            <p className="text-xs text-zinc-400">{WIDGET_DESCRIPTIONS[widget.type] ?? WIDGET_LABELS[widget.type]}</p>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-700">
+                {widget.width === "half" ? "½ ширины" : "Полная ширина"}
+              </span>
+              {!widget.isVisible && <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600">скрыт</span>}
+            </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
             <button
               onClick={() => updateWidget(widget.id, { width: widget.width === "half" ? "full" : "half" })}
-              title={widget.width === "half" ? "Полная ширина" : "Половина ширины"}
+              title={widget.width === "half" ? "Переключить на полную ширину" : "Переключить на ½ ширины"}
               className={`rounded-lg p-1.5 transition ${widget.width === "half" ? "bg-violet-100 text-violet-600" : "text-zinc-400 hover:text-zinc-700"}`}
             >
               {widget.width === "half" ? <Columns2 className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
@@ -533,7 +618,7 @@ export function PageBuilder() {
     <div className="space-y-3 pb-10">
       <SaveBar onSave={() => void handleSave()} saving={isLoading} saved={saved} />
 
-      <Section icon={<Image className="h-4 w-4" />} title="Фоновое фото" defaultOpen={!profile.backgroundUrl}>
+      <Section icon={<ImageIcon className="h-4 w-4" />} title="Фоновое фото" defaultOpen={!profile.backgroundUrl}>
         <HeroSection />
       </Section>
 

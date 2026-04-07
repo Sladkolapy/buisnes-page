@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { v2 as cloudinary } from "cloudinary";
 import { authOptions } from "@/adapters/auth/authOptions";
 

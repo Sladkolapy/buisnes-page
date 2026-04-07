@@ -7,9 +7,10 @@ import { MessageCircle, Loader2 } from "lucide-react";
 
 interface Props {
   recipientId: string;
+  accentColor?: string;
 }
 
-export function StartChatButton({ recipientId }: Props) {
+export function StartChatButton({ recipientId, accentColor }: Props) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,8 @@ export function StartChatButton({ recipientId }: Props) {
     <button
       onClick={handleClick}
       disabled={loading}
-      className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700 disabled:opacity-60"
+      className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white transition disabled:opacity-60"
+      style={{ backgroundColor: accentColor ?? "#7c3aed" }}
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

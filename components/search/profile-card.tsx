@@ -59,10 +59,24 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         </div>
       )}
 
-      {profile.description && (
+      {profile.description && !profile.pricePreview?.length && (
         <p className="line-clamp-2 text-xs leading-relaxed text-zinc-500">
           {profile.description}
         </p>
+      )}
+
+      {profile.pricePreview && profile.pricePreview.length > 0 && (
+        <div className="divide-y divide-zinc-100 rounded-xl border border-zinc-100 dark:divide-zinc-800 dark:border-zinc-800">
+          {profile.pricePreview.map((item, i) => (
+            <div key={i} className="flex items-baseline justify-between px-3 py-1.5">
+              <span className="truncate text-xs text-zinc-600 dark:text-zinc-400">{item.name}</span>
+              <span className="ml-2 shrink-0 text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                {item.unit && <span className="mr-0.5 font-normal text-zinc-500">{item.unit}</span>}
+                {item.price}
+              </span>
+            </div>
+          ))}
+        </div>
       )}
 
       <span className="mt-auto inline-flex items-center justify-center rounded-lg bg-violet-600 px-4 py-2 text-xs font-medium text-white transition group-hover:bg-violet-700">

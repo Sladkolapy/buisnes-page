@@ -12,6 +12,7 @@ import { MapWidget } from "@/components/widgets/map-widget";
 import { SocialWidget } from "@/components/widgets/social-widget";
 import { NewsWidget } from "@/components/widgets/news-widget";
 import { ReviewsWidget } from "@/components/widgets/reviews-widget";
+import { PriceListWidget } from "@/components/widgets/price-list-widget";
 import type {
   AboutContent,
   GalleryContent,
@@ -19,6 +20,7 @@ import type {
   MapContent,
   SocialContent,
   NewsContent,
+  PriceListContent,
 } from "@/core/shared/widget-types";
 
 const prisma = getPrisma();
@@ -50,6 +52,7 @@ export default async function PublicProfilePage({
   const profile = await prisma.businessProfile.findUnique({
     where: { subdomain },
     include: { user: { select: { id: true } } },
+    // bgColor, accentColor, backgroundUrl are in the model after migration
   });
 
   if (!profile || !profile.isPublished) notFound();
@@ -58,8 +61,12 @@ export default async function PublicProfilePage({
     .filter((w) => w.isVisible)
     .sort((a, b) => a.position - b.position);
 
+  const bgColor = (profile as { bgColor?: string | null }).bgColor ?? "#ffffff";
+  const accentColor = (profile as { accentColor?: string | null }).accentColor ?? "#7c3aed";
+  const backgroundUrl = (profile as { backgroundUrl?: string | null }).backgroundUrl;
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen" style={{ backgroundColor: bgColor }}>
       {/* Top bar */}
       <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
@@ -76,8 +83,8 @@ export default async function PublicProfilePage({
         </div>
       </header>
 
-      {(profile as { backgroundUrl?: string | null }).backgroundUrl && (
-        <ParallaxBackground imageUrl={(profile as { backgroundUrl?: string | null }).backgroundUrl} />
+      {backgroundUrl && (
+        <ParallaxBackground imageUrl={backgroundUrl} />
       )}
 
       <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
@@ -99,13 +106,13 @@ export default async function PublicProfilePage({
               <p className="mt-1 text-sm text-zinc-500">{profile.description}</p>
             )}
             <div className="mt-3">
-              <StartChatButton recipientId={profile.user.id} />
+              <StartChatButton recipientId={profile.user.id} accentColor={accentColor} />
             </div>
           </div>
         </div>
 
         {widgets.map((widget) => (
-          <WidgetRenderer key={widget.id} widget={widget} />
+          <WidgetRenderer key={widget.id} widget={widget} accentColor={accentColor} />
         ))}
 
         {widgets.length === 0 && (
@@ -116,7 +123,7 @@ export default async function PublicProfilePage({
   );
 }
 
-function WidgetRenderer({ widget }: { widget: WidgetData }) {
+function WidgetRenderer({ widget, accentColor }: { widget: WidgetData; accentColor?: string }) {
   switch (widget.type) {
     case WidgetType.ABOUT:
       return <AboutWidget title={widget.title} content={widget.content as AboutContent} />;
@@ -130,6 +137,8 @@ function WidgetRenderer({ widget }: { widget: WidgetData }) {
       return <SocialWidget title={widget.title} content={widget.content as SocialContent} />;
     case WidgetType.NEWS:
       return <NewsWidget title={widget.title} content={widget.content as NewsContent} />;
+    case WidgetType.PRICE_LIST:
+      return <PriceListWidget title={widget.title} content={widget.content as PriceListContent} />;
     case WidgetType.REVIEWS:
       return <ReviewsWidget title={widget.title} />;
     default:

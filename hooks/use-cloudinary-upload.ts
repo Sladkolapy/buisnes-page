@@ -24,7 +24,11 @@ export function useCloudinaryUpload(folder: Folder = "avatars") {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folder }),
       });
-      if (!sigRes.ok) throw new Error("Signature error");
+      if (!sigRes.ok) {
+        const errBody = await sigRes.text().catch(() => sigRes.status.toString());
+        console.error("[upload] signature error", sigRes.status, errBody);
+        throw new Error(`Signature error ${sigRes.status}: ${errBody}`);
+      }
       const { signature, timestamp, folder: cloudFolder, apiKey, cloudName } =
         (await sigRes.json()) as {
           signature: string;
@@ -45,7 +49,11 @@ export function useCloudinaryUpload(folder: Folder = "avatars") {
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         { method: "POST", body: formData },
       );
-      if (!uploadRes.ok) throw new Error("Upload failed");
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.text().catch(() => uploadRes.status.toString());
+        console.error("[upload] cloudinary error", uploadRes.status, errBody);
+        throw new Error(`Upload failed ${uploadRes.status}: ${errBody}`);
+      }
       const data = (await uploadRes.json()) as UploadResult;
       return data;
     } catch (e) {

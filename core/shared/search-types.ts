@@ -17,6 +17,7 @@ export interface ProfileCardData {
   categoryIds: string[];
   subcategoryIds: string[];
   isPublished: boolean;
+  pricePreview?: { name: string; price: string; unit?: string }[] | null;
 }
 
 export const DEFAULT_FILTERS: SearchFilters = {
