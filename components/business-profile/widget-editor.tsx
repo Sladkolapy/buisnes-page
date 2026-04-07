@@ -8,10 +8,12 @@ import {
   type WidgetData,
   type AboutContent,
   type ChecklistContent,
+  type GalleryContent,
   type MapContent,
   type NewsContent,
   type SocialContent,
 } from "@/core/shared/widget-types";
+import { GalleryWidget } from "@/components/widgets/gallery-widget";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
 
 interface Props {
@@ -258,10 +260,14 @@ function WidgetContentForm({
   }
 
   if (type === WidgetType.GALLERY) {
+    const c = content as GalleryContent;
     return (
-      <div className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700">
-        Загрузка изображений появится в следующей версии
-      </div>
+      <GalleryWidget
+        title=""
+        content={c}
+        editable
+        onUpdate={(images) => onChange({ ...c, images })}
+      />
     );
   }
 

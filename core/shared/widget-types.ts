@@ -56,6 +56,7 @@ export interface BusinessProfileData {
   description?: string;
   subdomain?: string;
   avatarUrl?: string;
+  backgroundUrl?: string;
   isPublished: boolean;
   widgets: WidgetData[];
 }

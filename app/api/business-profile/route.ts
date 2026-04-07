@@ -15,6 +15,7 @@ function toResponse(p: {
   description: string | null;
   subdomain: string | null;
   avatarUrl: string | null;
+  backgroundUrl?: string | null;
   isPublished: boolean;
   widgetsJson: unknown;
 }): BusinessProfileData {
@@ -25,6 +26,7 @@ function toResponse(p: {
     description: p.description ?? undefined,
     subdomain: p.subdomain ?? undefined,
     avatarUrl: p.avatarUrl ?? undefined,
+    backgroundUrl: p.backgroundUrl ?? undefined,
     isPublished: p.isPublished,
     widgets: (p.widgetsJson as unknown as WidgetData[]) ?? [],
   };
@@ -90,6 +92,7 @@ const patchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   avatarUrl: z.string().optional().nullable(),
+  backgroundUrl: z.string().optional().nullable(),
   isPublished: z.boolean().optional(),
   widgets: z.array(z.any()).optional(),
 });

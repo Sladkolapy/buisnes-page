@@ -73,8 +73,9 @@ model BusinessProfile {
   name        String
   description String?
   subdomain   String?  @unique
-  avatarUrl   String?
-  isPublished Boolean  @default(false)
+  avatarUrl     String?
+  backgroundUrl String?
+  isPublished   Boolean  @default(false)
   widgetsJson Json     @default("[]")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

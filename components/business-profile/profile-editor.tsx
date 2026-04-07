@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { Save, Globe, ExternalLink } from "lucide-react";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
 import { WidgetList } from "./widget-list";
+import { ParallaxBackground } from "@/components/parallax-background";
+import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
 
 type Tab = "basic" | "widgets" | "publish";
 
@@ -17,6 +19,7 @@ export function ProfileEditor() {
   const { profile, setProfile, saveProfile, isLoading } = useBusinessProfileStore();
   const [tab, setTab] = useState<Tab>("basic");
   const [saved, setSaved] = useState(false);
+  const { upload: uploadAvatar, uploading: uploadingAvatar } = useCloudinaryUpload("avatars");
 
   const { register, handleSubmit } = useForm<BasicForm>({
     defaultValues: {
@@ -133,21 +136,36 @@ export function ProfileEditor() {
                 </div>
               )}
               <label className="cursor-pointer rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
-                Загрузить фото
+                {uploadingAvatar ? "Загружаем…" : "Загрузить фото"}
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
+                  disabled={uploadingAvatar}
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
-                    if (file) {
-                      const url = URL.createObjectURL(file);
-                      setProfile({ ...profile, avatarUrl: url });
-                    }
+                    if (!file || !profile) return;
+                    const result = await uploadAvatar(file);
+                    if (result) setProfile({ ...profile, avatarUrl: result.secure_url });
                   }}
                 />
               </label>
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              Фоновое изображение страницы
+            </label>
+            <ParallaxBackground
+              imageUrl={profile.backgroundUrl}
+              editable
+              onUpdate={async (url) => {
+                if (!profile) return;
+                setProfile({ ...profile, backgroundUrl: url });
+                await saveProfile();
+              }}
+            />
           </div>
 
           <button

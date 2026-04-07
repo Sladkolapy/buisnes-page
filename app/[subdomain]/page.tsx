@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { StartChatButton } from "@/components/chat/start-chat-button";
+import { ParallaxBackground } from "@/components/parallax-background";
 import { notFound } from "next/navigation";
 import { getPrisma } from "@/config/containers";
 import { WidgetType, type WidgetData } from "@/core/shared/widget-types";
@@ -74,6 +75,10 @@ export default async function PublicProfilePage({
           </Link>
         </div>
       </header>
+
+      {(profile as { backgroundUrl?: string | null }).backgroundUrl && (
+        <ParallaxBackground imageUrl={(profile as { backgroundUrl?: string | null }).backgroundUrl} />
+      )}
 
       <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
         <div className="flex items-center gap-4 pb-2">

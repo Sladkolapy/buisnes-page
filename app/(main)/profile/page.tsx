@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
+import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
 
 const ROLE_LABELS: Record<string, string> = {
   CLIENT: "Клиент",
@@ -30,8 +31,8 @@ export default function ProfilePage() {
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
 
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { upload: uploadToCloud, uploading: uploadingAvatar } = useCloudinaryUpload("avatars");
 
   const user = session?.user as {
     id?: string; email?: string | null; phone?: string | null; role?: string;
@@ -76,26 +77,22 @@ export default function ProfilePage() {
     setSavingName(false);
   }
 
-  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingAvatar(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const dataUrl = reader.result as string;
+    const result = await uploadToCloud(file);
+    if (result) {
       const res = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarUrl: dataUrl }),
+        body: JSON.stringify({ avatarUrl: result.secure_url }),
       });
       if (res.ok) {
-        setUserProfile((p) => p ? { ...p, avatarUrl: dataUrl } : p);
+        setUserProfile((p) => p ? { ...p, avatarUrl: result.secure_url } : p);
         await updateSession();
       }
-      setUploadingAvatar(false);
-      if (fileRef.current) fileRef.current.value = "";
-    };
-    reader.readAsDataURL(file);
+    }
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   const displayName = userProfile?.name ?? user?.name ?? null;
