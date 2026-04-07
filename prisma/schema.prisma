@@ -75,6 +75,8 @@ model BusinessProfile {
   subdomain   String?  @unique
   avatarUrl     String?
   backgroundUrl String?
+  bgColor       String?  @default("#ffffff")
+  accentColor   String?  @default("#7c3aed")
   isPublished   Boolean  @default(false)
   widgetsJson Json     @default("[]")
   createdAt   DateTime @default(now())

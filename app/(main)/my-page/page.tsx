@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { CreateProfilePrompt } from "@/components/business-profile/create-profile-prompt";
-import { ProfileEditor } from "@/components/business-profile/profile-editor";
+import { PageBuilder } from "@/components/business-profile/page-builder";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
 
 export default function MyPagePage() {
@@ -24,5 +24,5 @@ export default function MyPagePage() {
     return <CreateProfilePrompt />;
   }
 
-  return <ProfileEditor />;
+  return <PageBuilder />;
 }

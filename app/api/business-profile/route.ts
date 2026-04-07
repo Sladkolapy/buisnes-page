@@ -16,6 +16,8 @@ function toResponse(p: {
   subdomain: string | null;
   avatarUrl: string | null;
   backgroundUrl?: string | null;
+  bgColor?: string | null;
+  accentColor?: string | null;
   isPublished: boolean;
   widgetsJson: unknown;
 }): BusinessProfileData {
@@ -27,6 +29,8 @@ function toResponse(p: {
     subdomain: p.subdomain ?? undefined,
     avatarUrl: p.avatarUrl ?? undefined,
     backgroundUrl: p.backgroundUrl ?? undefined,
+    bgColor: p.bgColor ?? "#ffffff",
+    accentColor: p.accentColor ?? "#7c3aed",
     isPublished: p.isPublished,
     widgets: (p.widgetsJson as unknown as WidgetData[]) ?? [],
   };
@@ -93,6 +97,8 @@ const patchSchema = z.object({
   description: z.string().max(500).optional(),
   avatarUrl: z.string().optional().nullable(),
   backgroundUrl: z.string().optional().nullable(),
+  bgColor: z.string().optional().nullable(),
+  accentColor: z.string().optional().nullable(),
   isPublished: z.boolean().optional(),
   widgets: z.array(z.any()).optional(),
 });

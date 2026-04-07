@@ -47,6 +47,7 @@ export interface WidgetData {
   content: WidgetContent;
   position: number;
   isVisible: boolean;
+  width?: "full" | "half";
 }
 
 export interface BusinessProfileData {
@@ -57,6 +58,8 @@ export interface BusinessProfileData {
   subdomain?: string;
   avatarUrl?: string;
   backgroundUrl?: string;
+  bgColor?: string;
+  accentColor?: string;
   isPublished: boolean;
   widgets: WidgetData[];
 }
