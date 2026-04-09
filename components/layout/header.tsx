@@ -71,17 +71,10 @@ export function Header() {
                 Записи
               </Link>
               <Link
-                href="/my-page/builder"
-                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              >
-                <LayoutTemplate className="h-4 w-4" />
-                Конструктор
-              </Link>
-              <Link
                 href="/my-page"
                 className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-violet-700"
               >
-                <Plus className="h-4 w-4" />
+                <LayoutTemplate className="h-4 w-4" />
                 Моя страница
               </Link>
               </>
