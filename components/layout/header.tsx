@@ -1,7 +1,7 @@
 "use client";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { LogOut, User, Plus, Search, Shield } from "lucide-react";
+import { LogOut, User, Plus, Search, Shield, CalendarDays, LayoutTemplate } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -62,6 +62,21 @@ export function Header() {
           )}
           {isAuth && (
             profile ? (
+              <>
+              <Link
+                href="/my-business"
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Записи
+              </Link>
+              <Link
+                href="/my-page/builder"
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                <LayoutTemplate className="h-4 w-4" />
+                Конструктор
+              </Link>
               <Link
                 href="/my-page"
                 className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-violet-700"
@@ -69,6 +84,7 @@ export function Header() {
                 <Plus className="h-4 w-4" />
                 Моя страница
               </Link>
+              </>
             ) : (
               <button
                 onClick={() => setCreateModalOpen(true)}

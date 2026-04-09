@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { StartChatButton } from "@/components/chat/start-chat-button";
+import { BookingButton } from "@/components/booking/booking-button";
 import { ParallaxBackground } from "@/components/parallax-background";
 import { notFound } from "next/navigation";
 import { getPrisma } from "@/config/containers";
@@ -13,6 +14,7 @@ import { SocialWidget } from "@/components/widgets/social-widget";
 import { NewsWidget } from "@/components/widgets/news-widget";
 import { ReviewsWidget } from "@/components/widgets/reviews-widget";
 import { PriceListWidget } from "@/components/widgets/price-list-widget";
+import { SocialDock } from "@/components/widgets/social-dock";
 import type {
   AboutContent,
   GalleryContent,
@@ -57,9 +59,12 @@ export default async function PublicProfilePage({
 
   if (!profile || !profile.isPublished) notFound();
 
-  const widgets = ((profile.widgetsJson as unknown as WidgetData[]) ?? [])
+  const allWidgets = ((profile.widgetsJson as unknown as WidgetData[]) ?? [])
     .filter((w) => w.isVisible)
     .sort((a, b) => a.position - b.position);
+
+  const socialWidget = allWidgets.find((w) => w.type === WidgetType.SOCIAL);
+  const widgets = allWidgets.filter((w) => w.type !== WidgetType.SOCIAL);
 
   const bgColor = (profile as { bgColor?: string | null }).bgColor ?? "#ffffff";
   const accentColor = (profile as { accentColor?: string | null }).accentColor ?? "#7c3aed";
@@ -105,7 +110,8 @@ export default async function PublicProfilePage({
             {profile.description && (
               <p className="mt-1 text-sm text-zinc-500">{profile.description}</p>
             )}
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap gap-2">
+              <BookingButton businessProfileId={profile.id} businessName={profile.name} accentColor={accentColor} />
               <StartChatButton recipientId={profile.user.id} accentColor={accentColor} />
             </div>
           </div>
@@ -119,6 +125,10 @@ export default async function PublicProfilePage({
           <p className="text-center text-sm text-zinc-400">Страница пока пустая</p>
         )}
       </div>
+
+      {socialWidget && (
+        <SocialDock content={socialWidget.content as SocialContent} />
+      )}
     </div>
   );
 }

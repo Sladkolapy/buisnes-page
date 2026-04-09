@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import {
   ImageIcon, User, Palette, LayoutGrid, Globe, ChevronDown, ChevronRight,
   Eye, EyeOff, GripVertical, Pencil, Trash2, Plus, Save, Check,
@@ -11,42 +11,121 @@ import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
 import { WidgetEditor } from "./widget-editor";
 import { WidgetType, WIDGET_LABELS, type WidgetData } from "@/core/shared/widget-types";
 
-const BG_PRESETS = [
-  { label: "Белый", value: "#ffffff" },
-  { label: "Светло-серый", value: "#f4f4f5" },
-  { label: "Серый", value: "#e4e4e7" },
-  { label: "Кремовый", value: "#fdf8f0" },
-  { label: "Бежевый", value: "#faf5eb" },
-  { label: "Светло-розовый", value: "#fff0f3" },
-  { label: "Персиковый", value: "#fff4ed" },
-  { label: "Абрикосовый", value: "#fff7ed" },
-  { label: "Лимонный", value: "#fefce8" },
-  { label: "Мятный", value: "#f0fdf4" },
-  { label: "Лазурный", value: "#f0f9ff" },
-  { label: "Голубой", value: "#eff6ff" },
-  { label: "Лавандовый", value: "#f5f3ff" },
-  { label: "Сиреневый", value: "#fdf4ff" },
-  { label: "Тёмный", value: "#18181b" },
-  { label: "Тёмно-серый", value: "#27272a" },
+function hexToHsl(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, Math.round(l * 100)];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const sn = s / 100, ln = l / 100;
+  const a = sn * Math.min(ln, 1 - ln);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = ln - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(255 * c).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+const BG_SHADES = [
+  { s: 10, l: 100 }, { s: 20, l: 98 }, { s: 40, l: 95 }, { s: 60, l: 91 },
+  { s: 70, l: 86 }, { s: 78, l: 78 }, { s: 82, l: 66 }, { s: 80, l: 50 },
+  { s: 65, l: 28 }, { s: 30, l: 14 },
 ];
-const ACCENT_PRESETS = [
-  { label: "Фиолетовый", value: "#7c3aed" },
-  { label: "Индиго", value: "#4338ca" },
-  { label: "Синий", value: "#2563eb" },
-  { label: "Голубой", value: "#0284c7" },
-  { label: "Бирюзовый", value: "#0891b2" },
-  { label: "Зелёный", value: "#16a34a" },
-  { label: "Изумрудный", value: "#059669" },
-  { label: "Мятный", value: "#0d9488" },
-  { label: "Жёлтый", value: "#ca8a04" },
-  { label: "Оранжевый", value: "#ea580c" },
-  { label: "Красный", value: "#dc2626" },
-  { label: "Розовый", value: "#db2777" },
-  { label: "Фуксия", value: "#c026d3" },
-  { label: "Сирень", value: "#9333ea" },
-  { label: "Тёмный", value: "#18181b" },
-  { label: "Серый", value: "#52525b" },
+
+const ACCENT_SHADES = [
+  { s: 90, l: 92 }, { s: 90, l: 80 }, { s: 92, l: 68 }, { s: 93, l: 56 },
+  { s: 90, l: 44 }, { s: 87, l: 35 }, { s: 82, l: 27 }, { s: 74, l: 20 },
+  { s: 40, l: 32 }, { s: 8, l: 14 },
 ];
+
+const HUE_GRADIENT = [
+  "hsl(0,100%,50%)", "hsl(30,100%,50%)", "hsl(60,100%,50%)", "hsl(90,100%,50%)",
+  "hsl(120,100%,50%)", "hsl(150,100%,50%)", "hsl(180,100%,50%)", "hsl(210,100%,50%)",
+  "hsl(240,100%,50%)", "hsl(270,100%,50%)", "hsl(300,100%,50%)", "hsl(330,100%,50%)",
+  "hsl(360,100%,50%)",
+].join(",");
+
+function HuePicker({ label, value, onChange, mode }: {
+  label: string;
+  value: string;
+  onChange: (hex: string) => void;
+  mode: "bg" | "accent";
+}) {
+  const [hue, setHue] = useState(() => hexToHsl(value.startsWith("#") && value.length === 7 ? value : "#7c3aed")[0]);
+
+  useEffect(() => {
+    if (value.startsWith("#") && value.length === 7) {
+      const [h] = hexToHsl(value);
+      setHue(h);
+    }
+  }, [value]);
+
+  const shadeParams = mode === "bg" ? BG_SHADES : ACCENT_SHADES;
+  const swatches = shadeParams.map(({ s, l }) => hslToHex(hue, s, l));
+
+  return (
+    <div className="space-y-3">
+      <>
+        <style>{`
+          .hue-range { -webkit-appearance: none; appearance: none; height: 14px;
+            border-radius: 999px; outline: none; cursor: pointer; width: 100%; }
+          .hue-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+            width: 22px; height: 22px; border-radius: 50%; background: white;
+            border: 3px solid rgba(0,0,0,0.3); box-shadow: 0 1px 4px rgba(0,0,0,0.25); cursor: pointer; }
+          .hue-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%;
+            background: white; border: 3px solid rgba(0,0,0,0.3); cursor: pointer; }
+        `}</style>
+      </>
+      <p className="text-xs font-medium text-zinc-500">{label}</p>
+
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 shrink-0 rounded-lg border border-zinc-200 shadow-sm" style={{ backgroundColor: value }} />
+        <span className="font-mono text-xs text-zinc-500">{value}</span>
+        <input
+          type="color" value={value.startsWith("#") && value.length === 7 ? value : "#000000"}
+          onChange={(e) => onChange(e.target.value)}
+          title="Произвольный цвет"
+          className="ml-auto h-7 w-7 shrink-0 cursor-pointer rounded border-0 bg-transparent p-0"
+        />
+      </div>
+
+      <input
+        type="range" min={0} max={360} value={hue}
+        onChange={(e) => setHue(Number(e.target.value))}
+        className="hue-range"
+        style={{ background: `linear-gradient(to right, ${HUE_GRADIENT})` }}
+      />
+
+      <div className="flex gap-1.5">
+        {swatches.map((sw) => (
+          <button
+            key={sw}
+            title={sw}
+            onClick={() => onChange(sw)}
+            style={{ backgroundColor: sw }}
+            className={`h-8 flex-1 rounded-lg border-2 transition-all hover:scale-105 ${
+              sw.toLowerCase() === value.toLowerCase()
+                ? "border-zinc-800 dark:border-white scale-95 shadow-md"
+                : "border-transparent"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const WIDGET_DESCRIPTIONS: Record<string, string> = {
   ABOUT: "Текст о вас, вашем опыте и услугах",
@@ -99,7 +178,7 @@ function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolea
   }
 
   return (
-    <div className="sticky top-0 z-20 -mx-4 flex items-center justify-between border-b border-zinc-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/90">
+    <div className="sticky top-14 z-20 -mx-4 flex items-center justify-between border-b border-zinc-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-zinc-700 dark:bg-zinc-950/90">
       <div>
         <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Конструктор страницы</p>
         <p className="text-xs text-zinc-400">Изменения сохраняются вручную</p>
@@ -326,60 +405,24 @@ function StyleSection() {
   const accent = profile.accentColor ?? "#7c3aed";
 
   return (
-    <div className="space-y-5">
-      <p className="-mt-1 mb-4 text-xs text-zinc-400">Цвет фона страницы и акцентный цвет кнопок — выберите из пресетов или задайте свой hex-код.</p>
-      <div>
-        <p className="mb-2 text-xs font-medium text-zinc-500">Фон страницы</p>
-        <div className="grid grid-cols-8 gap-1.5">
-          {BG_PRESETS.map((c) => (
-            <button
-              key={c.value}
-              onClick={() => setProfile({ ...profile, bgColor: c.value })}
-              title={c.label}
-              className={`h-10 w-full rounded-xl border-2 transition ${bg === c.value ? "border-violet-500 scale-95" : "border-transparent hover:border-zinc-300"}`}
-              style={{ backgroundColor: c.value }}
-            />
-          ))}
-        </div>
-        <div className="mt-2 flex items-center gap-2">
-          <label className="text-xs text-zinc-500">Свой цвет:</label>
-          <input
-            type="color" value={bg}
-            onChange={(e) => setProfile({ ...profile, bgColor: e.target.value })}
-            className="h-8 w-12 cursor-pointer rounded border border-zinc-200"
-          />
-          <span className="text-xs text-zinc-400">{bg}</span>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <HuePicker
+        label="Фон страницы"
+        value={bg}
+        onChange={(hex) => setProfile({ ...profile, bgColor: hex })}
+        mode="bg"
+      />
 
-      <div>
-        <p className="mb-2 text-xs font-medium text-zinc-500">Акцентный цвет (кнопки, ссылки)</p>
-        <div className="grid grid-cols-8 gap-1.5">
-          {ACCENT_PRESETS.map((c) => (
-            <button
-              key={c.value}
-              onClick={() => setProfile({ ...profile, accentColor: c.value })}
-              title={c.label}
-              className={`h-10 w-full rounded-xl border-2 transition ${accent === c.value ? "border-zinc-900 dark:border-white scale-95" : "border-transparent hover:border-zinc-300"}`}
-              style={{ backgroundColor: c.value }}
-            />
-          ))}
-        </div>
-        <div className="mt-2 flex items-center gap-2">
-          <label className="text-xs text-zinc-500">Свой цвет:</label>
-          <input
-            type="color" value={accent}
-            onChange={(e) => setProfile({ ...profile, accentColor: e.target.value })}
-            className="h-8 w-12 cursor-pointer rounded border border-zinc-200"
-          />
-          <span className="text-xs text-zinc-400">{accent}</span>
-        </div>
-      </div>
+      <div className="h-px bg-zinc-100 dark:bg-zinc-800" />
 
-      <div
-        className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700"
-        style={{ backgroundColor: bg }}
-      >
+      <HuePicker
+        label="Акцентный цвет (кнопки, ссылки)"
+        value={accent}
+        onChange={(hex) => setProfile({ ...profile, accentColor: hex })}
+        mode="accent"
+      />
+
+      <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-700" style={{ backgroundColor: bg }}>
         <p className="mb-1 text-xs text-zinc-500">Предпросмотр</p>
         <p className="text-sm font-bold" style={{ color: "#18181b" }}>{profile.name}</p>
         <button className="mt-2 rounded-lg px-3 py-1 text-xs text-white" style={{ backgroundColor: accent }}>

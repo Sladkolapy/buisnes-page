@@ -9,7 +9,7 @@ import { AboutWidget } from "@/components/widgets/about-widget";
 import { GalleryWidget } from "@/components/widgets/gallery-widget";
 import { ChecklistWidget } from "@/components/widgets/checklist-widget";
 import { MapWidget } from "@/components/widgets/map-widget";
-import { SocialWidget } from "@/components/widgets/social-widget";
+import { SocialDock } from "@/components/widgets/social-dock";
 import { NewsWidget } from "@/components/widgets/news-widget";
 import { ReviewsWidget } from "@/components/widgets/reviews-widget";
 import { PriceListWidget } from "@/components/widgets/price-list-widget";
@@ -36,7 +36,7 @@ function WidgetRenderer({ widget }: { widget: WidgetData }) {
     case WidgetType.MAP:
       return <MapWidget title={widget.title} content={widget.content as MapContent} />;
     case WidgetType.SOCIAL:
-      return <SocialWidget title={widget.title} content={widget.content as SocialContent} />;
+      return null;
     case WidgetType.NEWS:
       return <NewsWidget title={widget.title} content={widget.content as NewsContent} />;
     case WidgetType.PRICE_LIST:
@@ -77,14 +77,17 @@ export default function PreviewPage() {
   const bgColor = profile.bgColor ?? "#ffffff";
   const accentColor = profile.accentColor ?? "#7c3aed";
 
-  const widgets = [...profile.widgets]
+  const allWidgets = [...profile.widgets]
     .filter((w) => w.isVisible)
     .sort((a, b) => a.position - b.position);
+
+  const socialWidget = allWidgets.find((w) => w.type === WidgetType.SOCIAL);
+  const widgets = allWidgets.filter((w) => w.type !== WidgetType.SOCIAL);
 
   return (
     <div style={{ backgroundColor: bgColor, minHeight: "100vh" }}>
       {/* Sticky top bar */}
-      <div className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800">
+      <div className="sticky top-14 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <Link
             href="/my-page"
@@ -166,6 +169,10 @@ export default function PreviewPage() {
           </div>
         )}
       </div>
+
+      {socialWidget && (
+        <SocialDock content={socialWidget.content as SocialContent} />
+      )}
     </div>
   );
 }
