@@ -152,6 +152,8 @@ model WorkSchedule {
   startTime  String   @default("09:00")
   endTime    String   @default("18:00")
   isWorking  Boolean  @default(true)
+  lunchStart String?
+  lunchEnd   String?
 
   @@unique([executorId, dayOfWeek])
   @@index([executorId])

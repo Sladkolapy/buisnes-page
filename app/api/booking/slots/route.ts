@@ -50,6 +50,8 @@ export async function GET(req: NextRequest) {
   const duration = service.durationMinutes;
   const workStart = timeToMinutes(schedule.startTime);
   const workEnd = timeToMinutes(schedule.endTime);
+  const lunchStart = schedule.lunchStart ? timeToMinutes(schedule.lunchStart) : null;
+  const lunchEnd = schedule.lunchEnd ? timeToMinutes(schedule.lunchEnd) : null;
   const now = new Date();
   const isToday = dateObj.toDateString() === now.toDateString();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -58,6 +60,15 @@ export async function GET(req: NextRequest) {
   let cursor = workStart;
 
   while (cursor + duration <= workEnd) {
+    // Skip slots that overlap with the lunch break
+    if (lunchStart !== null && lunchEnd !== null) {
+      const slotEndMin = cursor + duration;
+      if (cursor < lunchEnd && slotEndMin > lunchStart) {
+        cursor = lunchEnd;
+        continue;
+      }
+    }
+
     if (!isToday || cursor > nowMinutes + 30) {
       const slotStart = new Date(`${date}T${minutesToTime(cursor)}:00.000Z`);
       const slotEnd = new Date(slotStart.getTime() + duration * 60000);

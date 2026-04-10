@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Service { id: string; name: string; durationMinutes: number }
-interface ScheduleDay { dayOfWeek: number; startTime: string; endTime: string; isWorking: boolean }
+interface ScheduleDay { dayOfWeek: number; startTime: string; endTime: string; isWorking: boolean; lunchStart: string | null; lunchEnd: string | null }
 interface Executor {
   id: string;
   name: string;
@@ -32,7 +32,7 @@ export function ExecutorsPanel() {
 
   const [form, setForm] = useState({ name: "", specialization: "" });
   const [scheduleForm, setScheduleForm] = useState<ScheduleDay[]>(
-    Array.from({ length: 7 }, (_, i) => ({ dayOfWeek: i, startTime: "09:00", endTime: "18:00", isWorking: i < 5 }))
+    Array.from({ length: 7 }, (_, i) => ({ dayOfWeek: i, startTime: "09:00", endTime: "18:00", isWorking: i < 5, lunchStart: "13:00", lunchEnd: "14:00" }))
   );
   const [serviceForm, setServiceForm] = useState<{ serviceId: string; priceKopecks: number }[]>([]);
 
@@ -53,7 +53,7 @@ export function ExecutorsPanel() {
 
   function openCreate() {
     setForm({ name: "", specialization: "" });
-    setScheduleForm(Array.from({ length: 7 }, (_, i) => ({ dayOfWeek: i, startTime: "09:00", endTime: "18:00", isWorking: i < 5 })));
+    setScheduleForm(Array.from({ length: 7 }, (_, i) => ({ dayOfWeek: i, startTime: "09:00", endTime: "18:00", isWorking: i < 5, lunchStart: "13:00", lunchEnd: "14:00" })));
     setServiceForm([]);
     setEditId(null);
     setShowForm(true);
@@ -63,7 +63,7 @@ export function ExecutorsPanel() {
     setForm({ name: e.name, specialization: e.specialization ?? "" });
     const sched = Array.from({ length: 7 }, (_, i) => {
       const found = e.schedules.find((s) => s.dayOfWeek === i);
-      return found ?? { dayOfWeek: i, startTime: "09:00", endTime: "18:00", isWorking: i < 5 };
+      return found ?? { dayOfWeek: i, startTime: "09:00", endTime: "18:00", isWorking: i < 5, lunchStart: "13:00", lunchEnd: "14:00" };
     });
     setScheduleForm(sched);
     setServiceForm(e.services.map((s) => ({ serviceId: s.serviceId, priceKopecks: s.priceKopecks })));
@@ -152,7 +152,7 @@ export function ExecutorsPanel() {
                     {DAY_LABELS[i]}
                   </button>
                   {day.isWorking ? (
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <input type="time" value={day.startTime}
                         onChange={(e) => setScheduleForm(scheduleForm.map((d, di) => di === i ? { ...d, startTime: e.target.value } : d))}
                         className="rounded-lg border border-zinc-200 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-800" />
@@ -160,6 +160,22 @@ export function ExecutorsPanel() {
                       <input type="time" value={day.endTime}
                         onChange={(e) => setScheduleForm(scheduleForm.map((d, di) => di === i ? { ...d, endTime: e.target.value } : d))}
                         className="rounded-lg border border-zinc-200 px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-800" />
+                      <span className="ml-1 text-xs text-zinc-400">обед</span>
+                      <input type="time" value={day.lunchStart ?? ""}
+                        onChange={(e) => setScheduleForm(scheduleForm.map((d, di) => di === i ? { ...d, lunchStart: e.target.value || null } : d))}
+                        className="rounded-lg border border-orange-200 px-2 py-1 text-xs dark:border-orange-800 dark:bg-zinc-800" />
+                      <span className="text-xs text-zinc-400">—</span>
+                      <input type="time" value={day.lunchEnd ?? ""}
+                        onChange={(e) => setScheduleForm(scheduleForm.map((d, di) => di === i ? { ...d, lunchEnd: e.target.value || null } : d))}
+                        className="rounded-lg border border-orange-200 px-2 py-1 text-xs dark:border-orange-800 dark:bg-zinc-800" />
+                      <button
+                        type="button"
+                        onClick={() => setScheduleForm(scheduleForm.map((d, di) => di === i ? { ...d, lunchStart: d.lunchStart ? null : "13:00", lunchEnd: d.lunchEnd ? null : "14:00" } : d))}
+                        className={`rounded px-1.5 py-0.5 text-xs transition ${day.lunchStart ? "text-orange-500 hover:bg-orange-50" : "text-zinc-400 hover:bg-zinc-100"}`}
+                        title={day.lunchStart ? "Убрать обед" : "Добавить обед"}
+                      >
+                        {day.lunchStart ? "✕ обед" : "+ обед"}
+                      </button>
                     </div>
                   ) : (
                     <span className="text-xs text-zinc-400">Выходной</span>
@@ -256,8 +272,15 @@ export function ExecutorsPanel() {
                     <p className="mb-1.5 text-xs font-medium text-zinc-500">График</p>
                     {e.schedules.map((s) => (
                       <div key={s.dayOfWeek} className="flex items-center gap-2 text-xs">
-                        <span className="w-5 text-zinc-400">{DAY_LABELS[s.dayOfWeek]}</span>
-                        {s.isWorking ? <span className="text-zinc-700 dark:text-zinc-300">{s.startTime}–{s.endTime}</span> : <span className="text-zinc-400">Выходной</span>}
+                        <span className="w-5 shrink-0 text-zinc-400">{DAY_LABELS[s.dayOfWeek]}</span>
+                        {s.isWorking ? (
+                          <span className="text-zinc-700 dark:text-zinc-300">
+                            {s.startTime}–{s.endTime}
+                            {s.lunchStart && s.lunchEnd && (
+                              <span className="ml-1.5 text-orange-500">(обед {s.lunchStart}–{s.lunchEnd})</span>
+                            )}
+                          </span>
+                        ) : <span className="text-zinc-400">Выходной</span>}
                       </div>
                     ))}
                   </div>

@@ -16,6 +16,8 @@ const patchSchema = z.object({
     startTime: z.string(),
     endTime: z.string(),
     isWorking: z.boolean(),
+    lunchStart: z.string().nullable().optional(),
+    lunchEnd: z.string().nullable().optional(),
   })).optional(),
   serviceIds: z.array(z.object({
     serviceId: z.string(),
@@ -51,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       await prisma.workSchedule.upsert({
         where: { executorId_dayOfWeek: { executorId: id, dayOfWeek: s.dayOfWeek } },
         create: { executorId: id, ...s },
-        update: { startTime: s.startTime, endTime: s.endTime, isWorking: s.isWorking },
+        update: { startTime: s.startTime, endTime: s.endTime, isWorking: s.isWorking, lunchStart: s.lunchStart ?? null, lunchEnd: s.lunchEnd ?? null },
       });
     }
   }
