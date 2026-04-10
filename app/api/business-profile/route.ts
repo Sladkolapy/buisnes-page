@@ -92,9 +92,12 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(toResponse(profile), { status: 201 });
 }
 
+const SUBDOMAIN_RE = /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/;
+
 const patchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
+  subdomain: z.string().regex(SUBDOMAIN_RE, "Неверный формат поддомена").optional(),
   avatarUrl: z.string().optional().nullable(),
   backgroundUrl: z.string().optional().nullable(),
   bgColor: z.string().optional().nullable(),
@@ -113,12 +116,20 @@ export async function PATCH(req: NextRequest) {
   const body = patchSchema.safeParse(await req.json());
   if (!body.success) return NextResponse.json({ error: body.error.flatten() }, { status: 422 });
 
-  const { widgets, ...rest } = body.data;
+  const { widgets, subdomain, ...rest } = body.data;
+
+  if (subdomain) {
+    const conflict = await prisma.businessProfile.findUnique({ where: { subdomain } });
+    if (conflict && conflict.userId !== uid) {
+      return NextResponse.json({ error: "Поддомен уже занят" }, { status: 409 });
+    }
+  }
 
   const profile = await prisma.businessProfile.update({
     where: { userId: uid },
     data: {
       ...rest,
+      ...(subdomain !== undefined ? { subdomain } : {}),
       ...(widgets !== undefined ? { widgetsJson: widgets } : {}),
     },
   });

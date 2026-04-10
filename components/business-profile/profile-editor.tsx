@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Save, Globe, ExternalLink } from "lucide-react";
+import { SubdomainEditor } from "./subdomain-editor";
 import { useBusinessProfileStore } from "@/stores/business-profile-store";
 import { WidgetList } from "./widget-list";
 import { ParallaxBackground } from "@/components/parallax-background";
@@ -199,6 +200,10 @@ export function ProfileEditor() {
 
       {tab === "publish" && (
         <div className="space-y-4">
+          {/* Subdomain picker */}
+          <SubdomainEditor />
+
+          {/* Publish toggle */}
           <div className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700">
             <div className="flex items-center justify-between">
               <div>
@@ -224,29 +229,6 @@ export function ProfileEditor() {
               </button>
             </div>
           </div>
-
-          {profile.subdomain && (
-            <div className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700">
-              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Ссылка на вашу страницу
-              </p>
-              <div className="mt-2 flex items-center gap-2 rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
-                <span className="flex-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  {typeof window !== "undefined" ? window.location.origin : ""}/{profile.subdomain}
-                </span>
-                <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/${profile.subdomain}`,
-                    )
-                  }
-                  className="text-xs text-violet-600 hover:underline"
-                >
-                  Копировать
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

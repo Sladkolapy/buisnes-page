@@ -46,18 +46,26 @@ export function HeroEditor({ settings, onChange }: Props) {
       </div>
       <div>
         <label className="mb-1 block text-xs text-zinc-500">Фоновое изображение</label>
-        <div className="flex items-center gap-2">
-          <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 text-xs text-zinc-500 hover:bg-zinc-50 dark:border-zinc-700">
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-            Загрузить
-            <input type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
-          </label>
-          {settings.bgImageUrl && (
-            <div className="relative">
-              <img src={settings.bgImageUrl} className="h-9 w-16 rounded-lg object-cover" alt="" />
-              <button onClick={() => onChange({ ...settings, bgImageUrl: "" })} className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">×</button>
-            </div>
-          )}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 text-xs text-zinc-500 hover:bg-zinc-50 dark:border-zinc-700">
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+              Загрузить файл
+              <input type="file" accept="image/*" className="hidden" onChange={handleBgUpload} />
+            </label>
+            {settings.bgImageUrl && (
+              <div className="relative">
+                <img src={settings.bgImageUrl} className="h-9 w-16 rounded-lg object-cover" alt="" />
+                <button onClick={() => onChange({ ...settings, bgImageUrl: "" })} className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">×</button>
+              </div>
+            )}
+          </div>
+          <input
+            className={inputCls}
+            value={settings.bgImageUrl ?? ""}
+            onChange={(e) => onChange({ ...settings, bgImageUrl: e.target.value })}
+            placeholder="или вставьте URL изображения (https://...)"
+          />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
