@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Users, Scissors, ClipboardList } from "lucide-react";
+import { Calendar, Users, Scissors, ClipboardList, Clock } from "lucide-react";
 import { ExecutorsPanel } from "@/components/business/executors-panel";
 import { ServicesPanel } from "@/components/business/services-panel";
 import { BookingCalendar } from "@/components/business/booking-calendar";
@@ -42,6 +42,18 @@ export default function MyBusinessPage() {
           </button>
         ))}
       </div>
+
+      {tab === "executors" && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm dark:border-amber-800 dark:bg-amber-950/20">
+          <div className="flex items-center gap-2 font-medium text-amber-800 dark:text-amber-300">
+            <Clock className="h-4 w-4" />
+            Время работы и обед настраиваются здесь
+          </div>
+          <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+            Нажмите ✏️ у специалиста → раздел «График» — задайте рабочие часы и перерыв на обед для каждого дня.
+          </p>
+        </div>
+      )}
 
       {tab === "calendar" && <BookingCalendar />}
       {tab === "bookings" && <BookingsList />}
